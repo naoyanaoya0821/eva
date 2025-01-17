@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="https://fonts.cdnfonts.com/css/seven-segment" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Iceberg&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Iceberg', sans-serif;
+    }
+
+    .warning-text {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      text-align: center;
+      color: #ff0000;
+      font-size: 24px;
+      font-family: 'Iceberg', sans-serif;
+      animation: blink 1s infinite;
+      letter-spacing: 2px;
+    }
+
+    .timer-container {
+      position: relative;
+      width: 500px;
+      height: 200px;
+      border: 3px solid #ff0000;
+      padding: 20px 0px;
+      color: #ff0000;
+      text-shadow: 0 0 10px #ff0000;
+      background: rgba(20, 0, 0, 0.9);
+      animation: pulse 2s infinite;
+    }
+
+    .timer-label {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: #000;
+      padding: 0 10px;
+      font-size: 16px;
+      color: #ff0000;
+      font-family: 'Iceberg', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .timer-display {
+      font-family: 'Seven Segment', sans-serif;
+      font-size: 64px;
+      text-align: center;
+      margin: 40px 0;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 0 20px #ff0000;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .timer-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .timer-label-small {
+      font-family: 'Iceberg', sans-serif;
+      font-size: 14px;
+      color: #ff0000;
+      margin-top: 5px;
+      letter-spacing: 1px;
+    }
+
+    .scanner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 0, 0, 0.5);
+      animation: scan 3s linear infinite;
+    }
+
+    .hazard-stripe {
+      position: absolute;
+      width: 100%;
+      height: 20px;
+      background: repeating-linear-gradient(
+        45deg,
+        #ff0000,
+        #ff0000 10px,
+        #000 10px,
+        #000 20px
+      );
+      opacity: 0.3;
+    }
+
+    .hazard-top {
+      top: 0;
+    }
+
+    .hazard-bottom {
+      bottom: 0;
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(200px); }
+		
+    }
+
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #ff0000; }
+      50% { box-shadow: 0 0 30px #ff0000; }
+      100% { box-shadow: 0 0 10px #ff0000; }
+    }
+
+    .corner {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #ff0000;
+    }
+
+    .corner-tl {
+      top: -3px;
+      left: -3px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .corner-tr {
+      top: -3px;
+      right: -3px;
+      border-left: none;
+      border-bottom: none;
+    }
+
+    .corner-bl {
+      bottom: -3px;
+      left: -3px;
+      border-right: none;
+      border-top: none;
+    }
+
+    .corner-br {
+      bottom: -3px;
+      right: -3px;
+      border-left: none;
+      border-top: none;
+    }
+
+    .status-text {
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: #ff0000;
+      font-family: 'Iceberg', sans-serif;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="timer-container">
+    <div class="warning-text">終探期限接近警報</div>
+    <div class="hazard-stripe hazard-top"></div>
+    <div class="hazard-stripe hazard-bottom"></div>
+    <div class="timer-label">EMERGENCY_TIMER V.01</div>
+    <div class="scanner"></div>
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+    <div class="timer-display">
+      <div class="timer-unit">
+        <div class="time-value">000</div>
+        <div class="timer-label-small">DAYS</div>
+      </div>
+      <div class="timer-unit">
+        <div class="time-value">00:00:00</div>
+        <div class="timer-label-small">HH:MM:SS</div>
+      </div>
+    </div>
+    <div class="status-text">** TIME REMAINING UNTIL DEADLINE **</div>
+  </div>
+
+  <script>
+    const targetDate = new Date('2025-01-30T18:00:00');
+    const statusTexts = [
+      "** TIME REMAINING UNTIL DEADLINE **",
+      "** EMERGENCY SYSTEM ACTIVE **",
+      "** INITIATING FINAL COUNTDOWN **"
+    ];
+    let statusIndex = 0;
+
+    function getTimeRemaining() {
+      const now = new Date();
+      const total = targetDate - now;
+      
+      if (total <= 0) {
+        return {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          total: 0
+        };
+      }
+
+      const days = Math.floor(total / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((total / 1000 / 60) % 60);
+      const seconds = Math.floor((total / 1000) % 60);
+
+      return {
+        days,
+        hours,
+        minutes,
+        seconds,
+        total
+      };
+    }
+
+    function formatTime(t) {
+      const dayDisplay = t.days.toString().padStart(3, '0');
+      const timeDisplay = `${t.hours.toString().padStart(2, '0')}:${t.minutes.toString().padStart(2, '0')}:${t.seconds.toString().padStart(2, '0')}`;
+      
+      document.querySelector('.timer-display .timer-unit:first-child .time-value').textContent = dayDisplay;
+      document.querySelector('.timer-display .timer-unit:last-child .time-value').textContent = timeDisplay;
+    }
+
+    function updateStatus() {
+      const statusText = document.querySelector('.status-text');
+      statusIndex = (statusIndex + 1) % statusTexts.length;
+      statusText.textContent = statusTexts[statusIndex];
+    }
+
+    function updateTimer() {
+      const t = getTimeRemaining();
+      formatTime(t);
+      
+      if (t.total <= 0) {
+        formatTime({days: 0, hours: 0, minutes: 0, seconds: 0});
+        document.querySelector('.status-text').textContent = "** DEADLINE REACHED **";
+      }
+    }
+
+    // 自動更新を開始
+    setInterval(() => {
+      updateTimer();
+      if (Math.floor(Date.now() / 1000) % 5 === 0) updateStatus();
+    }, 1000);
+
+    // 初期表示
+    updateTimer();
+  </script>
+</body>
+</html>
